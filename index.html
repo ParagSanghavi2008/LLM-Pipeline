@@ -1,0 +1,2353 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEXICON 3D STUDIO - Interactive Tokenizer & 3D Vector Embedding Space</title>
+  <style>
+    /* CSS Variables for True Black Dark Mode and Clean Light Mode */
+    :root[data-theme="dark"] {
+      --bg: #09090b;
+      --surface: #121215;
+      --card-bg: #18181b;
+      --card-inner: #0d0d10;
+      --border: #27272a;
+      --border-hover: #3f3f46;
+      --text-main: #fafafa;
+      --text-muted: #a1a1aa;
+      --accent: #2563eb;
+      --accent-glow: rgba(37, 99, 235, 0.25);
+      --accent-soft: rgba(37, 99, 235, 0.12);
+      --canvas-bg: #0b0c10;
+      --canvas-border: #27272a;
+      --pill-bg: rgba(24, 24, 27, 0.95);
+      --pill-border: #3f3f46;
+      --pill-text: #fafafa;
+      --legend-bg: #111116;
+      --legend-border: #27272a;
+      --resizer-line: #3f3f46;
+      --resizer-active: #2563eb;
+      --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+
+      /* Semantic Category Palette */
+      --cat-entity: #0ea5e9;     /* Objects / Animals (Cyan) */
+      --cat-action: #10b981;     /* Actions (Green) */
+      --cat-emotion: #f59e0b;    /* Emotions (Amber) */
+      --cat-grammar: #64748b;    /* Grammar (Slate) */
+      --cat-concept: #ef4444;    /* Concept (Red) */
+      --cat-custom: #06b6d4;     /* Added Separately (Neon Cyan) */
+    }
+
+    :root[data-theme="light"] {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --card-bg: #ffffff;
+      --card-inner: #f1f5f9;
+      --border: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-glow: rgba(37, 99, 235, 0.2);
+      --accent-soft: rgba(37, 99, 235, 0.08);
+      --canvas-bg: #f4f6f8;
+      --canvas-border: #cbd5e1;
+      --pill-bg: #ffffff;
+      --pill-border: #cbd5e1;
+      --pill-text: #0f172a;
+      --legend-bg: #18181b;
+      --legend-border: #27272a;
+      --resizer-line: #cbd5e1;
+      --resizer-active: #2563eb;
+      --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+
+      --cat-entity: #0284c7;
+      --cat-action: #059669;
+      --cat-emotion: #d97706;
+      --cat-grammar: #64748b;
+      --cat-concept: #dc2626;
+      --cat-custom: #0891b2;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.18s ease;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Top Studio Header Bar */
+    .top-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.65rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      user-select: none;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-glow);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+
+    .brand-text h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .brand-badge {
+      font-size: 0.65rem;
+      background: var(--accent);
+      color: #ffffff;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .brand-sub {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .stats-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .stat-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 0.25rem 0.65rem;
+      font-size: 0.76rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-muted);
+    }
+
+    .stat-pill strong {
+      color: var(--text-main);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    select.preset-select {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn-icon {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .btn-icon:hover {
+      border-color: var(--border-hover);
+    }
+
+    /* Horizontal Studio Navigation Tabs */
+    .nav-tabs-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.45rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      overflow-x: auto;
+      user-select: none;
+    }
+
+    .nav-tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.38rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .nav-tab-btn.active {
+      background: var(--card-bg);
+      border-color: var(--border);
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* Workspace Container with Interactive Draggable Splitter */
+    .workspace-wrapper {
+      display: flex;
+      flex-direction: row;
+      flex: 1;
+      padding: 1rem 1.25rem;
+      gap: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Draggable Resizer Bar (Splitter) */
+    .resizer-bar {
+      width: 12px;
+      cursor: col-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      flex-shrink: 0;
+      position: relative;
+      margin: 0 4px;
+      z-index: 20;
+    }
+
+    .resizer-line {
+      width: 3px;
+      height: 80px;
+      background: var(--resizer-line);
+      border-radius: 9999px;
+      transition: background-color 0.2s, height 0.2s;
+    }
+
+    .resizer-bar:hover .resizer-line, .resizer-bar.active .resizer-line {
+      background: var(--resizer-active);
+      height: 140px;
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* Left Content Area */
+    .content-area {
+      min-width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow-y: auto;
+      max-height: calc(100vh - 120px);
+      padding-right: 0.5rem;
+    }
+
+    .panel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.95rem;
+    }
+
+    .panel-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-main);
+    }
+
+    .panel-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+
+    /* Form Controls */
+    textarea.sentence-input, input.text-input, select.select-input {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem;
+      font-size: 0.88rem;
+      color: var(--text-main);
+      outline: none;
+      font-family: inherit;
+      width: 100%;
+    }
+
+    textarea.sentence-input:focus, input.text-input:focus, select.select-input:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-action {
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+
+    .btn-action:hover {
+      opacity: 0.9;
+    }
+
+    .badge-chip {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.3rem 0.55rem;
+      font-size: 0.78rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      cursor: pointer;
+    }
+
+    .badge-chip:hover {
+      border-color: var(--accent);
+    }
+
+    .badge-chip.custom-badge {
+      border: 1px dashed var(--cat-custom);
+    }
+
+    .badge-num {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      background: var(--surface);
+      padding: 0.1rem 0.3rem;
+      border-radius: 4px;
+    }
+
+    .array-box {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.6rem 0.85rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Analytics Metric Cards */
+    .metrics-quad {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.65rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .metrics-quad {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .metric-cell {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem;
+      text-align: center;
+    }
+
+    .metric-val {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin: 0.25rem 0;
+    }
+
+    .metric-title {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .metric-sub {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    /* Right 3D Viewport Column */
+    .viewport-panel {
+      min-width: 260px;
+      position: sticky;
+      top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      height: 100%;
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 520px;
+      background: var(--canvas-bg);
+      border: 1px solid var(--canvas-border);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: grab;
+      touch-action: none;
+      box-shadow: var(--shadow);
+    }
+
+    .canvas-container:active {
+      cursor: grabbing;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Viewport Top Camera Toolbar */
+    .viewport-top-toolbar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: var(--pill-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.3rem 0.5rem;
+      z-index: 5;
+    }
+
+    .camera-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0.2rem 0.35rem;
+      border-radius: 4px;
+    }
+
+    .camera-btn:hover {
+      color: var(--text-main);
+      background: var(--card-bg);
+    }
+
+    .tool-divider {
+      width: 1px;
+      height: 12px;
+      background: var(--border);
+    }
+
+    .drag-badge {
+      font-size: 0.68rem;
+      color: var(--accent);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    /* Floating Legend: WORD CATEGORIES */
+    .legend-floating-card {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: var(--legend-bg);
+      border: 1px solid var(--legend-border);
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      z-index: 10;
+      max-width: 180px;
+      pointer-events: auto;
+    }
+
+    .legend-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #94a3b8;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .legend-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3rem 0.5rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.7rem;
+      color: #f1f5f9;
+      font-weight: 500;
+    }
+
+    .legend-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Tables */
+    .studio-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+    }
+
+    .studio-table th {
+      text-align: left;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.45rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .studio-table td {
+      padding: 0.55rem 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    /* Heatmap Table Matrix */
+    .heatmap-table {
+      border-collapse: separate;
+      border-spacing: 4px;
+      width: 100%;
+    }
+
+    .heatmap-cell {
+      padding: 0.65rem 0.4rem;
+      text-align: center;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .heatmap-cell:hover {
+      transform: scale(1.08);
+      outline: 2px solid var(--accent);
+    }
+
+    /* Zipfian Frequency Bar Chart */
+    .zipf-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.75rem;
+      height: 150px;
+      padding: 0.75rem 0.5rem 0.25rem;
+      border-bottom: 1px solid var(--border);
+      margin-top: 0.5rem;
+    }
+
+    .zipf-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      gap: 0.35rem;
+    }
+
+    .zipf-bar {
+      width: 100%;
+      background: var(--accent);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.4s ease;
+      min-height: 4px;
+    }
+
+    .zipf-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 50px;
+    }
+
+    /* Notification Toast */
+    .toast-popup {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #18181b;
+      color: #fafafa;
+      border: 1px solid var(--accent);
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.3s;
+    }
+
+    .toast-popup.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Studio Header Bar -->
+  <header class="top-header">
+    <div class="brand-section">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/>
+          <path d="M12 8v4m-5 4 3-2m9 2-3-2"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>LEXICON 3D STUDIO <span class="brand-badge">PRO</span></h1>
+        <div class="brand-sub">Interactive Tokenizer & 3D Vector Embedding Space</div>
+      </div>
+    </div>
+
+    <!-- Live Studio Stat Counters -->
+    <div class="stats-group">
+      <div class="stat-pill"><span style="color:var(--accent);">●</span> Vocab: <strong id="statVocab">8</strong></div>
+      <div class="stat-pill">Tokens: <strong id="statTokens">9</strong></div>
+      <div class="stat-pill">3D Nodes: <strong id="statNodes">8</strong></div>
+    </div>
+
+    <!-- Header Action Controls -->
+    <div class="header-actions">
+      <select id="presetSelect" class="preset-select">
+        <option value="" disabled selected>📂 Load Presets...</option>
+        <option value="cat_dog">Animals & Actions (The cat is playing...)</option>
+        <option value="quick_fox">Pangram (The quick brown fox...)</option>
+        <option value="ai_vector">Tech (AI models process vectors...)</option>
+      </select>
+
+      <button id="themeToggleBtn" class="btn-icon" title="Toggle Theme">
+        <span id="themeIcon">☀️</span>
+      </button>
+
+      <button id="resetCamBtn" class="btn-icon" title="Reset 3D View">🔄</button>
+    </div>
+  </header>
+
+  <!-- Horizontal Studio Navigation Tabs -->
+  <nav class="nav-tabs-bar" id="mainNavBar">
+    <button class="nav-tab-btn active" data-tab="dashboard">Studio Dashboard</button>
+    <button class="nav-tab-btn" data-tab="tokenizer">1. Tokenizer Modes</button>
+    <button class="nav-tab-btn" data-tab="vocab">2. Vocabulary Builder</button>
+    <button class="nav-tab-btn" data-tab="encoder">3. Sentence Encoder</button>
+    <button class="nav-tab-btn" data-tab="cosine">4. Cosine Similarity</button>
+    <button class="nav-tab-btn" data-tab="math">5. Vector Word Math</button>
+    <button class="nav-tab-btn" data-tab="attention">6. Attention Matrix</button>
+    <button class="nav-tab-btn" data-tab="addword">7. Add Word to 3D</button>
+    <button class="nav-tab-btn" data-tab="analytics">8. Analytics</button>
+  </nav>
+
+  <!-- Workspace: Draggable Splitter between Content & 3D Space -->
+  <div class="workspace-wrapper" id="workspaceWrapper">
+
+    <!-- Left Content Panel -->
+    <main class="content-area" id="tabContentContainer" style="flex: 0 0 62%;">
+      <!-- Injected via JavaScript based on active top tab -->
+    </main>
+
+    <!-- Draggable Splitter Divider Gesture Bar -->
+    <div class="resizer-bar" id="resizerBar" title="Drag left/right to adjust content & 3D space size">
+      <div class="resizer-line"></div>
+    </div>
+
+    <!-- Right 3D Viewport Column -->
+    <aside class="viewport-panel" id="viewportPanel" style="flex: 1;">
+      <div class="canvas-container" id="canvasContainer">
+        
+        <!-- Viewport Top Camera Toolbar -->
+        <div class="viewport-top-toolbar">
+          <button class="camera-btn" id="camReset">Reset</button>
+          <div class="tool-divider"></div>
+          <button class="camera-btn" id="camTop">Top</button>
+          <button class="camera-btn" id="camFront">Front</button>
+          <button class="camera-btn" id="camIso">Iso</button>
+          <div class="tool-divider"></div>
+          <span class="drag-badge">🖐️ Drag: ON</span>
+        </div>
+
+        <!-- HTML5 Canvas for 3D Spheres & Floor Grid -->
+        <canvas id="studioCanvas"></canvas>
+
+        <!-- Floating Legend: WORD CATEGORIES -->
+        <div class="legend-floating-card">
+          <div class="legend-title">WORD CATEGORIES:</div>
+          <div class="legend-grid">
+            <div class="legend-item"><span class="legend-dot" style="background:var(--cat-entity);"></span>Objects</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--cat-action);"></span>Actions</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--cat-emotion);"></span>Emotions</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--cat-grammar);"></span>Grammar</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--cat-concept);"></span>Concept</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--cat-custom);"></span>Added</div>
+          </div>
+        </div>
+
+      </div>
+      <div style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
+        ↔️ Drag center bar to resize &bull; 🖱️ Drag to rotate &bull; Scroll to zoom
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Notification Toast Popup -->
+  <div id="toast" class="toast-popup">Notification message</div>
+
+  <script>
+    // WHAT THIS DOES:
+    // Holds the global studio state: active tab, camera rotation angles, theme mode, and word data.
+    let activeTab = 'dashboard';
+    let isDarkMode = true;
+    let angleX = 0.38;
+    let angleY = 0.65;
+    let zoomScale = 0.90;
+    let isDragging3D = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let highlightedPair = null;
+
+    let tokenizerMode = 'word';
+
+    // Word Category Definitions with 3D Shading Palettes
+    const CATEGORIES = {
+      entity:  { name: 'Objects',   base: '#0ea5e9', highlight: '#bae6fd', shadow: '#0369a1' },
+      action:  { name: 'Actions',   base: '#10b981', highlight: '#a7f3d0', shadow: '#047857' },
+      emotion: { name: 'Emotions',  base: '#f59e0b', highlight: '#fde68a', shadow: '#b45309' },
+      grammar: { name: 'Grammar',   base: '#64748b', highlight: '#cbd5e1', shadow: '#334155' },
+      concept: { name: 'Concept',   base: '#ef4444', highlight: '#fecaca', shadow: '#b91c1c' }
+    };
+
+    const CUSTOM_ADDED_CATEGORY = {
+      name: 'Added Separately', base: '#06b6d4', highlight: '#a5f3fc', shadow: '#0e7490'
+    };
+
+    // Dictionary of categories for automatic linguistic classification
+    const CATEGORY_MAP = {
+      'the': 'grammar', 'a': 'grammar', 'an': 'grammar', 'is': 'grammar', 'was': 'grammar',
+      'are': 'grammar', 'and': 'grammar', 'to': 'grammar', 'for': 'grammar', 'with': 'grammar',
+      'cat': 'entity', 'dog': 'entity', 'food': 'entity', 'fef': 'entity', 'fox': 'entity',
+      'playing': 'action', 'plays': 'action', 'jumps': 'action', 'running': 'action', 'runs': 'action',
+      'quick': 'emotion', 'lazy': 'emotion', 'happy': 'emotion', 'calm': 'emotion',
+      'vector': 'concept', 'embedding': 'concept', 'pipeline': 'concept', 'space': 'concept'
+    };
+
+    // Active sentence string
+    let activeSentence = "The cat is playing and the dog is playing.";
+
+    // Separately added words array (persists independently across sentence edits)
+    let customAddedWords = [];
+
+    // All active 3D vector points currently rendered in 3D space
+    let vectorPoints = [];
+    let sequenceArray = [];
+    let vocabMap = {};
+
+    // DOM Elements
+    const rootElement = document.documentElement;
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    const resetCamBtn = document.getElementById('resetCamBtn');
+    const presetSelect = document.getElementById('presetSelect');
+    const tabContentContainer = document.getElementById('tabContentContainer');
+    const mainNavBar = document.getElementById('mainNavBar');
+    const canvas = document.getElementById('studioCanvas');
+    const canvasContainer = document.getElementById('canvasContainer');
+    const statVocab = document.getElementById('statVocab');
+    const statTokens = document.getElementById('statTokens');
+    const statNodes = document.getElementById('statNodes');
+    const toast = document.getElementById('toast');
+    const resizerBar = document.getElementById('resizerBar');
+    const workspaceWrapper = document.getElementById('workspaceWrapper');
+
+    // WHAT THIS DOES:
+    // Shows a clean temporary notification toast on the screen.
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('visible');
+      setTimeout(() => toast.classList.remove('visible'), 2400);
+    }
+
+    // WHAT THIS DOES:
+    // Copies text to clipboard and displays confirmation toast.
+    window.copyToClipboard = function(text, label = "Item") {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(`✓ Copied ${label} to clipboard!`);
+      }).catch(() => {
+        showToast(`✓ Copied!`);
+      });
+    };
+
+    // WHAT THIS DOES:
+    // Setup draggable resizer gesture between Content Area and 3D Viewport.
+    function setupResizerGesture() {
+      let isResizing = false;
+
+      resizerBar.addEventListener('mousedown', function (e) {
+        isResizing = true;
+        resizerBar.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+      });
+
+      window.addEventListener('mousemove', function (e) {
+        if (!isResizing) return;
+        const rect = workspaceWrapper.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const totalW = rect.width;
+
+        let percent = (offsetX / totalW) * 100;
+        percent = Math.max(25, Math.min(80, percent));
+
+        tabContentContainer.style.flex = `0 0 ${percent}%`;
+        draw3DSpace();
+      });
+
+      window.addEventListener('mouseup', function () {
+        if (isResizing) {
+          isResizing = false;
+          resizerBar.classList.remove('active');
+          document.body.style.cursor = '';
+          draw3DSpace();
+        }
+      });
+
+      resizerBar.addEventListener('touchstart', function () {
+        isResizing = true;
+        resizerBar.classList.add('active');
+      });
+
+      window.addEventListener('touchmove', function (e) {
+        if (!isResizing || !e.touches[0]) return;
+        const rect = workspaceWrapper.getBoundingClientRect();
+        const offsetX = e.touches[0].clientX - rect.left;
+        let percent = (offsetX / rect.width) * 100;
+        percent = Math.max(25, Math.min(80, percent));
+        tabContentContainer.style.flex = `0 0 ${percent}%`;
+        draw3DSpace();
+      });
+
+      window.addEventListener('touchend', function () {
+        if (isResizing) {
+          isResizing = false;
+          resizerBar.classList.remove('active');
+          draw3DSpace();
+        }
+      });
+    }
+
+    // WHAT THIS DOES:
+    // Toggles between Dark Mode and Light Mode.
+    themeToggleBtn.addEventListener('click', function () {
+      isDarkMode = !isDarkMode;
+      if (isDarkMode) {
+        rootElement.setAttribute('data-theme', 'dark');
+        themeIcon.textContent = '☀️';
+      } else {
+        rootElement.setAttribute('data-theme', 'light');
+        themeIcon.textContent = '🌙';
+      }
+      draw3DSpace();
+    });
+
+    // WHAT THIS DOES:
+    // Classifies a word into its linguistic category.
+    function detectCategory(rawWord) {
+      const clean = rawWord.toLowerCase().replace(/[^a-z]/g, '');
+      if (CATEGORY_MAP[clean]) return CATEGORY_MAP[clean];
+      if (clean.endsWith('ing') || clean.endsWith('ed')) return 'action';
+      if (clean.endsWith('ly') || clean.endsWith('ful')) return 'emotion';
+      if (clean.length <= 3) return 'grammar';
+      return 'entity';
+    }
+
+    // WHAT THIS DOES:
+    // Calculates well-separated coordinates for each category sector, and arranges words in that category with clean radial spacing.
+    function calculateSpaciousCoordinates(category, itemIndex, totalInCat) {
+      // Well-separated distinct sectors for each category
+      const clusterCenters = {
+        entity:  { x: -180, y: -70,  z: -70 }, // Left-Back sector (Objects)
+        action:  { x: 170,  y: -130, z: 90 },  // Top-Right sector (Actions)
+        emotion: { x: -160, y: 120,  z: 90 },  // Bottom-Left sector (Emotions)
+        grammar: { x: 180,  y: 60,   z: -60 }, // Right-Middle sector (Grammar)
+        concept: { x: 0,    y: -40,  z: -170 } // Deep-Back sector (Concept)
+      };
+
+      const center = clusterCenters[category] || { x: 50, y: -50, z: 50 };
+      
+      // Clean radial spread so words within the same category NEVER overlap
+      const count = Math.max(1, totalInCat);
+      const angle = (itemIndex / count) * 2 * Math.PI;
+      const radius = totalInCat > 1 ? 40 : 0;
+
+      return {
+        x: Math.round(center.x + Math.cos(angle) * radius),
+        y: Math.round(center.y + Math.sin(angle) * (radius * 0.75)),
+        z: Math.round(center.z + Math.sin(angle * 1.5) * (radius * 0.6))
+      };
+    }
+
+    // WHAT THIS DOES:
+    // Maps a word to its 3D embedding vector with its category styling.
+    function createWordVector(word, categoryOverride, isCustom = false) {
+      const clean = word.trim();
+      const category = categoryOverride || detectCategory(clean);
+
+      let hash = 1000;
+      for (let i = 0; i < clean.length; i++) hash += clean.charCodeAt(i) * 19;
+      const tokenId = (hash % 8999) + 1000;
+
+      const catObj = isCustom ? CUSTOM_ADDED_CATEGORY : CATEGORIES[category];
+
+      return {
+        word: clean,
+        tokenId: tokenId,
+        category: category,
+        color: catObj.base,
+        highlight: catObj.highlight,
+        shadow: catObj.shadow,
+        isCustom: isCustom,
+        x: 0,
+        y: 0,
+        z: 0
+      };
+    }
+
+    // WHAT THIS DOES:
+    // Core data processing:
+    // 1. Sentence words in 3D space STRICTLY match words in the current sentence.
+    // 2. If a word is removed from the sentence, it is IMMEDIATELY removed from 3D space!
+    // 3. Separately added words persist unless deleted.
+    // 4. Words are kept clearly separated according to their respective category.
+    function processSentence() {
+      const cleanText = activeSentence.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+      let rawTokens = [];
+
+      if (tokenizerMode === 'subword') {
+        const words = cleanText.trim().split(/\s+/).filter(Boolean);
+        words.forEach(w => {
+          if (w.endsWith('ing') && w.length > 3) {
+            rawTokens.push(w.slice(0, -3));
+            rawTokens.push('##ing');
+          } else if (w.endsWith('es') && w.length > 3) {
+            rawTokens.push(w.slice(0, -2));
+            rawTokens.push('##es');
+          } else if (w.length > 5) {
+            rawTokens.push(w.slice(0, 3));
+            rawTokens.push('##' + w.slice(3));
+          } else {
+            rawTokens.push(w);
+          }
+        });
+      } else if (tokenizerMode === 'character') {
+        rawTokens = cleanText.replace(/\s+/g, '').split('');
+      } else {
+        rawTokens = cleanText.trim().split(/\s+/).filter(Boolean);
+      }
+
+      vocabMap = {};
+      let nextId = 0;
+      sequenceArray = [];
+      const wordFreq = {};
+
+      rawTokens.forEach(w => {
+        if (vocabMap[w] === undefined) {
+          vocabMap[w] = nextId++;
+        }
+        sequenceArray.push(vocabMap[w]);
+        wordFreq[w] = (wordFreq[w] || 0) + 1;
+      });
+
+      // Build nodes ONLY for words currently in the sentence!
+      // (Words removed from sentence are omitted, so they vanish from 3D space)
+      const currentSentenceWords = Object.keys(vocabMap);
+      const sentenceNodes = currentSentenceWords.map(w => ({
+        ...createWordVector(w, null, false),
+        assignedId: vocabMap[w],
+        frequency: wordFreq[w]
+      }));
+
+      // Combine current sentence nodes with separately added custom words
+      // (ensuring separately added words do not duplicate sentence words)
+      const filteredCustom = customAddedWords.filter(c => !currentSentenceWords.includes(c.word));
+      filteredCustom.forEach((c, idx) => {
+        c.assignedId = currentSentenceWords.length + idx;
+      });
+
+      vectorPoints = [...sentenceNodes, ...filteredCustom];
+
+      // Arrange words cleanly by category so each category is well-separated
+      const categoryGroups = {};
+      vectorPoints.forEach(p => {
+        if (!categoryGroups[p.category]) categoryGroups[p.category] = [];
+        categoryGroups[p.category].push(p);
+      });
+
+      Object.keys(categoryGroups).forEach(cat => {
+        const group = categoryGroups[cat];
+        group.forEach((pt, idx) => {
+          // If custom with user-defined coords, keep; otherwise compute spacious cluster coords
+          if (!pt.isCustom || (pt.x === 0 && pt.y === 0)) {
+            const coords = calculateSpaciousCoordinates(cat, idx, group.length);
+            pt.x = coords.x;
+            pt.y = coords.y;
+            pt.z = coords.z;
+          }
+        });
+      });
+
+      // Update Header Stats
+      statVocab.textContent = vectorPoints.length;
+      statTokens.textContent = rawTokens.length;
+      statNodes.textContent = vectorPoints.length;
+
+      // When typing, selectively update dynamic elements without wiping the focused textarea!
+      if (isTyping) {
+        updateActiveTabLiveElements();
+      } else {
+        renderActiveTab();
+      }
+      draw3DSpace();
+    }
+
+    // WHAT THIS DOES:
+    // Selectively updates badges, sequence arrays, and tables while typing so the active textarea is never wiped or recreated.
+    function updateActiveTabLiveElements() {
+      if (activeTab === 'dashboard') {
+        const badgesWrap = document.getElementById('dashTokenBadgesWrap');
+        if (badgesWrap) {
+          badgesWrap.innerHTML = vectorPoints.map(p => `
+            <div class="badge-chip ${p.isCustom ? 'custom-badge' : ''}" onclick="focusWordIn3D('${p.word}')" title="${p.isCustom ? 'Separately Added' : 'Sentence Word'}">
+              <span style="color:${p.color};">●</span>
+              <span>${p.word}</span>
+              <span class="badge-num">#${p.assignedId ?? p.tokenId}</span>
+            </div>
+          `).join('');
+        }
+        const seqSpan = document.getElementById('dashSequenceArraySpan');
+        if (seqSpan) {
+          seqSpan.textContent = `ENCODED SEQUENCE: [${sequenceArray.join(', ')}]`;
+        }
+        setupQuickSimControls();
+      } else if (activeTab === 'tokenizer') {
+        const streamWrap = document.getElementById('tokStreamWrap');
+        if (streamWrap) {
+          streamWrap.innerHTML = vectorPoints.map(p => `
+            <div class="badge-chip" onclick="focusWordIn3D('${p.word}')">
+              <span>${p.word}</span>
+              <span class="badge-num">#${p.assignedId ?? p.tokenId}</span>
+            </div>
+          `).join('');
+        }
+        const tableBody = document.getElementById('tokTableBody');
+        if (tableBody) {
+          tableBody.innerHTML = vectorPoints.map((p, idx) => `
+            <tr>
+              <td style="color:var(--text-muted);">${idx}</td>
+              <td><strong>${p.word}</strong></td>
+              <td style="color:var(--accent);">#${p.assignedId ?? idx}</td>
+              <td style="color:${p.color}; text-transform:capitalize;">${p.category}</td>
+            </tr>
+          `).join('');
+        }
+      } else if (activeTab === 'encoder') {
+        const encBox = document.getElementById('encoderResultArray');
+        if (encBox) {
+          encBox.textContent = `[${sequenceArray.join(', ')}]`;
+        }
+        const decInput = document.getElementById('txtDecodeSequence');
+        if (decInput) {
+          decInput.value = `[${sequenceArray.join(', ')}]`;
+        }
+      }
+    }
+
+    // WHAT THIS DOES:
+    // Renders the specific content panel based on the active tab clicked in the top navigation bar.
+    function renderActiveTab() {
+      if (activeTab === 'dashboard') {
+        // --- 0. STUDIO DASHBOARD ---
+        tabContentContainer.innerHTML = `
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">🔤 Sentence Tokenizer & Parser</div>
+                <div class="panel-desc">Real-time sync: edit or remove words below to see them update in 3D immediately</div>
+              </div>
+              <button id="btnTokenizeSync" class="btn-action">⚡ Tokenize & Sync</button>
+            </div>
+            <textarea id="txtSentence" class="sentence-input" style="height:70px;">${activeSentence}</textarea>
+            
+            <div style="font-size:0.75rem; color:var(--text-muted); margin: 0.75rem 0 0.4rem;">WORDS IN 3D SPACE (Click any badge to focus):</div>
+            <div id="dashTokenBadgesWrap" class="token-badges-wrap" style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:0.75rem;">
+              ${vectorPoints.map(p => `
+                <div class="badge-chip ${p.isCustom ? 'custom-badge' : ''}" onclick="focusWordIn3D('${p.word}')" title="${p.isCustom ? 'Separately Added' : 'Sentence Word'}">
+                  <span style="color:${p.color};">●</span>
+                  <span>${p.word}</span>
+                  <span class="badge-num">#${p.assignedId ?? p.tokenId}</span>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="array-box">
+              <span id="dashSequenceArraySpan">ENCODED SEQUENCE: [${sequenceArray.join(', ')}]</span>
+              <button class="btn-action" style="padding:0.25rem 0.6rem; font-size:0.75rem;" onclick="copyToClipboard('[${sequenceArray.join(', ')}]', 'Sequence Array')">📋 Copy Array</button>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="panel-card">
+              <div class="panel-title" style="margin-bottom:0.75rem;">🔍 Cosine Quick Tester</div>
+              <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem;">
+                <select id="quickSimA" class="select-input"></select>
+                <select id="quickSimB" class="select-input"></select>
+              </div>
+              <div style="text-align:center; padding:0.6rem; background:var(--card-inner); border-radius:8px; border:1px solid var(--border);">
+                Cosine Score: <strong id="quickSimScore" style="color:var(--accent); font-size:1.15rem;">+0.983</strong>
+              </div>
+            </div>
+
+            <div class="panel-card">
+              <div class="panel-title" style="margin-bottom:0.75rem;">➕ Quick Add Word (Separately)</div>
+              <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem;">
+                <input type="text" id="quickAddWord" class="text-input" placeholder="e.g. food, kitten" />
+                <button id="btnQuickAdd" class="btn-action">Add</button>
+              </div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Injected separately into 3D space with persistent status.</div>
+            </div>
+          </div>
+        `;
+
+        setupQuickSimControls();
+
+        // Live input typing without losing cursor or focus!
+        const sentenceEl = document.getElementById('txtSentence');
+        sentenceEl.addEventListener('input', () => {
+          activeSentence = sentenceEl.value;
+          processSentence(true);
+        });
+
+        document.getElementById('btnTokenizeSync').addEventListener('click', () => {
+          activeSentence = sentenceEl.value;
+          processSentence(false);
+          showToast("✓ Synced sentence to 3D space!");
+        });
+
+        document.getElementById('btnQuickAdd').addEventListener('click', () => {
+          const w = document.getElementById('quickAddWord').value.trim();
+          if (w) {
+            const newPoint = { ...createWordVector(w, 'entity', true), frequency: 1 };
+            customAddedWords.push(newPoint);
+            processSentence(false);
+            focusWordIn3D(w);
+            showToast(`✓ Injected "${w}" separately into 3D Space!`);
+          }
+        });
+
+      } else if (activeTab === 'tokenizer') {
+        // --- 1. TOKENIZER MODES ---
+        tabContentContainer.innerHTML = `
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">✂️ Multi-Strategy Tokenizer</div>
+                <div class="panel-desc">Word-level, Subword (BPE Simulation), and Character-level tokenization</div>
+              </div>
+              <div style="display:flex; gap:0.35rem;">
+                <button class="btn-action" style="padding:0.35rem 0.65rem;" onclick="setSample(1)">Sample 1</button>
+                <button class="btn-action" style="padding:0.35rem 0.65rem;" onclick="setSample(2)">Sample 2</button>
+                <button class="btn-action" style="padding:0.35rem 0.65rem;" onclick="setSample(3)">Pangram</button>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:0.4rem; margin-bottom:0.75rem;">
+              <button class="nav-tab-btn ${tokenizerMode === 'word' ? 'active' : ''}" onclick="setTokenizerMode('word')">Word Tokens</button>
+              <button class="nav-tab-btn ${tokenizerMode === 'subword' ? 'active' : ''}" onclick="setTokenizerMode('subword')">Subword (BPE)</button>
+              <button class="nav-tab-btn ${tokenizerMode === 'character' ? 'active' : ''}" onclick="setTokenizerMode('character')">Character</button>
+            </div>
+
+            <textarea id="txtTokenizerInput" class="sentence-input" style="height:70px;">${activeSentence}</textarea>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin:0.65rem 0 1rem; flex-wrap:wrap; gap:0.5rem;">
+              <div style="display:flex; gap:1rem; font-size:0.8rem; color:var(--text-muted);">
+                <label><input type="checkbox" id="chkLow" checked /> Lowercase</label>
+                <label><input type="checkbox" id="chkPunct" checked /> Clean Punctuation</label>
+              </div>
+              <div style="display:flex; gap:0.4rem;">
+                <button class="btn-action" style="background:var(--card-inner); border:1px solid var(--border); color:var(--text-main);" onclick="document.getElementById('txtTokenizerInput').value=''; activeSentence=''; processSentence(true);">Clear Input</button>
+                <button class="btn-action" onclick="tokenizeFromInput()">▷ Tokenize & Sync Vocabulary</button>
+              </div>
+            </div>
+
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.4rem;">ACTIVE TOKENS STREAM (${tokenizerMode.toUpperCase()} MODE):</div>
+            <div id="tokStreamWrap" style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:1rem;">
+              ${vectorPoints.map(p => `
+                <div class="badge-chip" onclick="focusWordIn3D('${p.word}')">
+                  <span>${p.word}</span>
+                  <span class="badge-num">#${p.assignedId ?? p.tokenId}</span>
+                </div>
+              `).join('')}
+            </div>
+
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.4rem;">TOKEN MAPPING TABLE:</div>
+            <table class="studio-table">
+              <thead>
+                <tr><th>POS</th><th>TOKEN STRING</th><th>ASSIGNED ID</th><th>TYPE</th></tr>
+              </thead>
+              <tbody id="tokTableBody">
+                ${vectorPoints.map((p, idx) => `
+                  <tr>
+                    <td style="color:var(--text-muted);">${idx}</td>
+                    <td><strong>${p.word}</strong></td>
+                    <td style="color:var(--accent);">#${p.assignedId ?? idx}</td>
+                    <td style="color:${p.color}; text-transform:capitalize;">${p.category}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        const tokInput = document.getElementById('txtTokenizerInput');
+        tokInput.addEventListener('input', () => {
+          activeSentence = tokInput.value;
+          processSentence(true);
+        });
+
+      } else if (activeTab === 'vocab') {
+        // --- 2. VOCABULARY BUILDER ---
+        tabContentContainer.innerHTML = `
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">📖 Vocabulary Dictionary</div>
+                <div class="panel-desc">All sentence words and separately added words grouped by category</div>
+              </div>
+              <button class="btn-action" style="padding:0.35rem 0.65rem;" onclick="exportVocabJSON()">📥 Export JSON</button>
+            </div>
+
+            <div style="display:flex; gap:0.6rem; margin-bottom:1rem;">
+              <input type="text" id="vocabSearch" class="text-input" placeholder="🔍 Search word or Token ID..." oninput="filterVocabTable()" />
+              <select id="vocabCatFilter" class="select-input" style="max-width:160px;" onchange="filterVocabTable()">
+                <option value="all">All Categories</option>
+                <option value="entity">Objects</option>
+                <option value="action">Actions</option>
+                <option value="emotion">Emotions</option>
+                <option value="grammar">Grammar</option>
+                <option value="concept">Concept</option>
+              </select>
+            </div>
+
+            <div class="metrics-quad" style="grid-template-columns: repeat(3, 1fr);">
+              <div class="metric-cell">
+                <div class="metric-title">TOTAL ACTIVE</div>
+                <div class="metric-val" style="color:var(--accent);">${vectorPoints.length}</div>
+              </div>
+              <div class="metric-cell">
+                <div class="metric-title">FROM SENTENCE</div>
+                <div class="metric-val" style="color:var(--cat-entity);">${vectorPoints.filter(p => !p.isCustom).length}</div>
+              </div>
+              <div class="metric-cell">
+                <div class="metric-title">ADDED SEPARATELY</div>
+                <div class="metric-val" style="color:var(--cat-action);">${customAddedWords.length}</div>
+              </div>
+            </div>
+
+            <table class="studio-table" id="vocabTable">
+              <thead>
+                <tr><th>TOKEN ID</th><th>WORD</th><th>SOURCE</th><th>3D COORDINATES</th><th>ACTIONS</th></tr>
+              </thead>
+              <tbody id="vocabTableTbody">
+                ${vectorPoints.map(p => `
+                  <tr data-word="${p.word.toLowerCase()}" data-id="${p.assignedId ?? p.tokenId}" data-cat="${p.category}">
+                    <td style="color:var(--accent); font-weight:bold;">#${p.assignedId ?? p.tokenId}</td>
+                    <td><span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:${p.color}; margin-right:5px;"></span><strong>${p.word}</strong></td>
+                    <td style="font-size:0.75rem; color:${p.isCustom ? 'var(--cat-custom)' : 'var(--text-muted)'}; font-weight:600;">${p.isCustom ? 'Separately Added' : 'In Sentence'}</td>
+                    <td style="font-family:monospace; font-size:0.75rem; color:var(--text-muted);">[${p.x}, ${p.y}, ${p.z}]</td>
+                    <td>
+                      <button class="btn-action" style="padding:0.2rem 0.5rem; font-size:0.7rem;" onclick="focusWordIn3D('${p.word}')">🎯 Fly</button>
+                      <button class="btn-action" style="padding:0.2rem 0.5rem; font-size:0.7rem; background:#dc2626;" onclick="deleteWord('${p.word}', ${p.isCustom})">🗑️</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+      } else if (activeTab === 'encoder') {
+        // --- 3. SENTENCE ENCODER ---
+        tabContentContainer.innerHTML = `
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">🔢 Sentence Numerical Encoder</div>
+                <div class="panel-desc">Map sentences to numerical tokens & handle unknown tokens</div>
+              </div>
+            </div>
+
+            <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.4rem;">Sentence to Encode:</div>
+            <textarea id="txtEncoderInput" class="sentence-input" style="height:70px;">${activeSentence}</textarea>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <label style="font-size:0.8rem; color:var(--text-muted);"><input type="checkbox" id="chkAutoAdd" checked /> Auto-add unknown words to vocabulary</label>
+              <button class="btn-action" onclick="encodeSentence()">▷ Encode Sentence</button>
+            </div>
+
+            <div class="panel-card" style="background:var(--card-inner); margin-bottom:1rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                <span style="font-size:0.75rem; color:var(--accent); font-weight:700;">FINAL ENCODED SEQUENCE:</span>
+                <button class="btn-action" style="padding:0.2rem 0.5rem; font-size:0.7rem;" onclick="copyToClipboard(document.getElementById('encoderResultArray').textContent.trim(), 'Encoded Sequence')">📋 Copy Sequence</button>
+              </div>
+              <div id="encoderResultArray" class="array-box">
+                [${sequenceArray.join(', ')}]
+              </div>
+            </div>
+
+            <div style="font-size:0.8rem; font-weight:600; margin-bottom:0.4rem;">Decode Sequence Back to Text:</div>
+            <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+              <input type="text" id="txtDecodeSequence" class="text-input" value="[${sequenceArray.join(', ')}]" />
+              <button class="btn-action" onclick="decodeSequence()">Decode</button>
+            </div>
+            <div id="decodedTextResult" class="array-box">
+              "${activeSentence}"
+            </div>
+          </div>
+        `;
+
+        const encInput = document.getElementById('txtEncoderInput');
+        encInput.addEventListener('input', () => {
+          activeSentence = encInput.value;
+          processSentence(true);
+        });
+
+      } else if (activeTab === 'cosine') {
+        // --- 4. COSINE SIMILARITY ---
+        tabContentContainer.innerHTML = `
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">⚖️ Cosine Similarity Calculator</div>
+                <div class="panel-desc">Compute vector angle & distance in 3D embedding space</div>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+              <div>
+                <label style="font-size:0.78rem; color:var(--text-muted);">Vector A (Word):</label>
+                <select id="cosWordA" class="select-input"></select>
+              </div>
+              <div>
+                <label style="font-size:0.78rem; color:var(--text-muted);">Vector B (Word):</label>
+                <select id="cosWordB" class="select-input"></select>
+              </div>
+            </div>
+
+            <div class="panel-card" style="background:var(--card-inner); text-align:center; padding:1.25rem; margin-bottom:1rem;">
+              <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">COSINE SIMILARITY SCORE COS(A, B):</div>
+              <div id="bigCosScore" style="font-size:2.4rem; font-weight:800; color:var(--accent); margin:0.35rem 0;">+0.983</div>
+              <span id="similarityPill" style="font-size:0.72rem; background:rgba(16, 185, 129, 0.15); color:var(--cat-action); padding:0.2rem 0.6rem; border-radius:9999px; font-weight:700;">HIGH SIMILARITY</span>
+              <div id="angularSeparationText" style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">Angular separation: 10.4° &bull; -1.0 (Opposite) to +1.0 (Collinear)</div>
+            </div>
+
+            <div class="panel-card" style="background:var(--card-inner); font-family:monospace; font-size:0.78rem;">
+              <div style="color:var(--text-muted); margin-bottom:0.5rem; font-weight:600;">Formula: cos(A, B) = (A &bull; B) / (||A|| &times; ||B||)</div>
+              <div id="mathBreakdownDetails" style="color:var(--text-main); line-height:1.6;">
+                Calculating live vector breakdown...
+              </div>
+            </div>
+
+            <div style="font-size:0.75rem; color:var(--text-muted); margin:1rem 0 0.4rem;">RANKED NEAREST NEIGHBORS:</div>
+            <table class="studio-table">
+              <thead><tr><th>RANK</th><th>WORD</th><th>COSINE SIMILARITY</th><th>ACTION</th></tr></thead>
+              <tbody id="nearestNeighborsTbody"></tbody>
+            </table>
+          </div>
+        `;
+        setupCosineTabControls();
+
+      } else if (activeTab === 'math') {
+        // --- 5. VECTOR WORD MATH ---
+        tabContentContainer.innerHTML = `
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">🧮 Vector Word Math (Analogy Lab)</div>
+                <div class="panel-desc">Semantic vector arithmetic: Word A - Word B + Word C &approx; Target</div>
+              </div>
+              <div style="display:flex; gap:0.4rem;">
+                <button class="btn-action" style="padding:0.25rem 0.6rem;" onclick="setMathPreset(1)">dog - cat + playing</button>
+                <button class="btn-action" style="padding:0.25rem 0.6rem;" onclick="setMathPreset(2)">king - man + woman</button>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem; margin-bottom:1rem;">
+              <div>
+                <label style="font-size:0.75rem; color:var(--accent);">Vector A (+):</label>
+                <select id="mathVecA" class="select-input"></select>
+              </div>
+              <div>
+                <label style="font-size:0.75rem; color:var(--cat-concept);">Vector B (&minus;):</label>
+                <select id="mathVecB" class="select-input"></select>
+              </div>
+              <div>
+                <label style="font-size:0.75rem; color:var(--cat-action);">Vector C (+):</label>
+                <select id="mathVecC" class="select-input"></select>
+              </div>
+            </div>
+
+            <div class="panel-card" style="background:var(--card-inner); margin-bottom:1rem;">
+              <div style="font-size:0.72rem; color:var(--text-muted); font-weight:700;">SYNTHESIZED TARGET VECTOR V_RESULT = A - B + C:</div>
+              <div id="synthesizedVec" style="font-family:monospace; font-size:1.15rem; color:var(--accent); font-weight:bold; margin:0.35rem 0;">
+                [0.86, 1.55, -1.29]
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem;">
+                <div>
+                  <span style="font-size:0.75rem; color:var(--text-muted);">Closest Match in Vocabulary:</span>
+                  <strong id="mathClosestWord" style="color:var(--text-main); font-size:1rem; margin-left:6px;">playing</strong>
+                  <span id="mathClosestScore" style="font-size:0.72rem; background:var(--accent-soft); color:var(--accent); padding:0.15rem 0.4rem; border-radius:4px; margin-left:4px;">cos = +0.892</span>
+                </div>
+                <button class="btn-action" onclick="focusClosestMathWord()">🎯 Fly to Node</button>
+              </div>
+            </div>
+
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.4rem;">NEAREST NEIGHBORS TO SYNTHESIZED TARGET:</div>
+            <table class="studio-table">
+              <thead><tr><th>RANK</th><th>WORD</th><th>COSINE SIMILARITY</th><th>ACTION</th></tr></thead>
+              <tbody id="mathNearestTbody"></tbody>
+            </table>
+          </div>
+        `;
+        setupMathTabControls();
+
+      } else if (activeTab === 'attention') {
+        // --- 6. ATTENTION MATRIX ---
+        const sampleTokens = vectorPoints.slice(0, 8);
+        tabContentContainer.innerHTML = `
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">▦ Token Co-occurrence & Attention Heatmap</div>
+                <div class="panel-desc">Contextual interaction matrix between tokens in active sentence</div>
+              </div>
+            </div>
+            <div id="attentionStatusText" style="font-size:0.78rem; color:var(--accent); font-weight:600; margin-bottom:0.75rem;">
+              Hover over any cell to inspect the affinity weight and highlight the relationship in 3D:
+            </div>
+
+            <div style="overflow-x:auto;">
+              <table class="heatmap-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    ${sampleTokens.map(t => `<th style="font-size:0.75rem; color:var(--text-muted); padding:4px;">${t.word}</th>`).join('')}
+                  </tr>
+                </thead>
+                <tbody>
+                  ${sampleTokens.map((t1, i) => `
+                    <tr>
+                      <th style="font-size:0.75rem; color:var(--text-muted); text-align:right; padding:4px 8px;">${t1.word}</th>
+                      ${sampleTokens.map((t2, j) => {
+                        const val = i === j ? "1.00" : Math.max(0.00, (0.95 - Math.abs(i - j) * 0.22 + (t1.word.length * 0.05) % 0.3)).toFixed(2);
+                        const bgAlpha = Math.max(0.08, parseFloat(val) * 0.85);
+                        return `
+                          <td class="heatmap-cell" style="background:rgba(37, 99, 235, ${bgAlpha}); color:#ffffff;" 
+                              onmouseenter="hoverHeatmapCell('${t1.word}', '${t2.word}', '${val}')"
+                              onmouseleave="clearHeatmapHover()">
+                            ${val}
+                          </td>
+                        `;
+                      }).join('')}
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; margin-top:1rem; font-size:0.75rem; color:var(--text-muted);">
+              <span>Low Interaction (0.00)</span>
+              <span>High Interaction (1.00)</span>
+            </div>
+          </div>
+        `;
+
+      } else if (activeTab === 'addword') {
+        // --- 7. ADD WORD TO 3D ---
+        tabContentContainer.innerHTML = `
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">➕ Manual 3D Node Creator</div>
+                <div class="panel-desc">Add words separately into 3D space with persistent status</div>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1rem; margin-bottom:1rem;">
+              <div>
+                <label style="font-size:0.78rem; color:var(--text-muted);">Word to Add Separately:</label>
+                <input type="text" id="manualWord" class="text-input" placeholder="e.g. neuron, universe, kitten..." />
+              </div>
+              <div>
+                <label style="font-size:0.78rem; color:var(--text-muted);">Initial Frequency:</label>
+                <input type="number" id="manualFreq" class="text-input" value="1" min="1" />
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1rem;">
+              <div>
+                <label style="font-size:0.78rem; color:var(--text-muted);">Semantic Category:</label>
+                <select id="manualCategory" class="select-input" onchange="autoComputeCoords()">
+                  <option value="entity" selected>Objects & Nouns (Animals/Things)</option>
+                  <option value="action">Actions & Verbs (Movement/Actions)</option>
+                  <option value="emotion">Emotions & Mind (Descriptors/Feelings)</option>
+                  <option value="grammar">Grammar & Function (Stop words)</option>
+                  <option value="concept">Concept (Abstract ideas)</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:0.78rem; color:var(--text-muted);">Anchor near existing word (optional):</label>
+                <select id="manualAnchorWord" class="select-input" onchange="anchorToSelectedWord()">
+                  <option value="">None (Use category cluster)</option>
+                  ${vectorPoints.map(p => `<option value="${p.word}">${p.word} (${p.category})</option>`).join('')}
+                </select>
+              </div>
+            </div>
+
+            <!-- Coordinate Sliders Box -->
+            <div class="panel-card" style="background:var(--card-inner); margin-bottom:1rem;">
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:0.75rem;">
+                <span>3D COORDINATES (X, Y, Z):</span>
+                <span style="color:var(--accent); cursor:pointer;" onclick="autoComputeCoords()">✨ Auto-Compute Sector</span>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:0.65rem;">
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:0.75rem;">
+                    <span style="color:var(--cat-concept);">X Axis:</span><strong id="valX">-180</strong>
+                  </div>
+                  <input type="range" id="rangeX" min="-220" max="220" value="-180" style="width:100%;" oninput="document.getElementById('valX').textContent=this.value" />
+                </div>
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:0.75rem;">
+                    <span style="color:var(--cat-action);">Y Axis:</span><strong id="valY">-70</strong>
+                  </div>
+                  <input type="range" id="rangeY" min="-220" max="220" value="-70" style="width:100%;" oninput="document.getElementById('valY').textContent=this.value" />
+                </div>
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:0.75rem;">
+                    <span style="color:var(--cat-entity);">Z Axis:</span><strong id="valZ">-70</strong>
+                  </div>
+                  <input type="range" id="rangeZ" min="-220" max="220" value="-70" style="width:100%;" oninput="document.getElementById('valZ').textContent=this.value" />
+                </div>
+              </div>
+            </div>
+
+            <button class="btn-action" style="width:100%; justify-content:center; padding:0.65rem;" onclick="injectManualWord()">
+              ⊕ Inject Word into 3D Space (Separately)
+            </button>
+          </div>
+        `;
+
+      } else if (activeTab === 'analytics') {
+        // --- 8. ANALYTICS ---
+        const totalChars = vectorPoints.reduce((acc, p) => acc + p.word.length, 0);
+        const avgLen = vectorPoints.length ? (totalChars / vectorPoints.length).toFixed(1) : 3.5;
+        const ratio = (vectorPoints.length / (statTokens.textContent || 9)).toFixed(3);
+
+        tabContentContainer.innerHTML = `
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">📊 Corpus Metrics & Embeddings Analytics</div>
+                <div class="panel-desc">Lexical richness, frequency distribution & vector metrics</div>
+              </div>
+            </div>
+
+            <div class="metrics-quad">
+              <div class="metric-cell">
+                <div class="metric-title">TYPE-TOKEN RATIO</div>
+                <div class="metric-val" style="color:var(--accent);">${ratio}</div>
+                <div class="metric-sub">Lexical Diversity</div>
+              </div>
+              <div class="metric-cell">
+                <div class="metric-title">AVG WORD LEN</div>
+                <div class="metric-val" style="color:var(--cat-action);">${avgLen}</div>
+                <div class="metric-sub">Characters</div>
+              </div>
+              <div class="metric-cell">
+                <div class="metric-title">AVG VECTOR NORM</div>
+                <div class="metric-val" style="color:#a855f7;">5.68</div>
+                <div class="metric-sub">Embedding Magnitude</div>
+              </div>
+              <div class="metric-cell">
+                <div class="metric-title">ACTIVE EDGES</div>
+                <div class="metric-val" style="color:var(--cat-emotion);">${vectorPoints.length}</div>
+                <div class="metric-sub">In 3D Space</div>
+              </div>
+            </div>
+
+            <div class="panel-card" style="background:var(--card-inner); margin-bottom:1rem;">
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700;">
+                <span>WORD FREQUENCY DISTRIBUTION (ZIPFIAN VIEW):</span>
+                <span style="color:var(--text-muted);">Top Active Words</span>
+              </div>
+              <div class="zipf-chart">
+                ${vectorPoints.slice(0, 8).map(p => {
+                  const freq = p.frequency || 1;
+                  const barH = freq >= 2 ? 88 : 46;
+                  return `
+                    <div class="zipf-bar-wrap">
+                      <div class="zipf-bar" style="height:${barH}%; background:${p.color};"></div>
+                      <span class="zipf-label">${p.word}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <div class="panel-card" style="background:var(--card-inner);">
+              <div style="font-size:0.75rem; font-weight:700; margin-bottom:0.6rem;">CLUSTER DISTRIBUTION (BY SECTOR):</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.78rem;">
+                <div style="background:var(--card-bg); padding:0.4rem 0.65rem; border-radius:6px; border:1px solid var(--border);">
+                  <span style="color:var(--cat-entity);">●</span> Objects (Left-Back): <strong>${vectorPoints.filter(p => p.category === 'entity').length}</strong>
+                </div>
+                <div style="background:var(--card-bg); padding:0.4rem 0.65rem; border-radius:6px; border:1px solid var(--border);">
+                  <span style="color:var(--cat-action);">●</span> Actions (Top-Right): <strong>${vectorPoints.filter(p => p.category === 'action').length}</strong>
+                </div>
+                <div style="background:var(--card-bg); padding:0.4rem 0.65rem; border-radius:6px; border:1px solid var(--border);">
+                  <span style="color:var(--cat-grammar);">●</span> Grammar (Right-Mid): <strong>${vectorPoints.filter(p => p.category === 'grammar').length}</strong>
+                </div>
+                <div style="background:var(--card-bg); padding:0.4rem 0.65rem; border-radius:6px; border:1px solid var(--border);">
+                  <span style="color:var(--cat-emotion);">●</span> Emotions (Bottom-Left): <strong>${vectorPoints.filter(p => p.category === 'emotion').length}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Helper functions for controls & calculations
+    function calculateCosine(pA, pB) {
+      if (!pA || !pB) return 1.0;
+      const dot = (pA.x * pB.x) + (pA.y * pB.y) + (pA.z * pB.z);
+      const magA = Math.sqrt(pA.x * pA.x + pA.y * pA.y + pA.z * pA.z) || 1;
+      const magB = Math.sqrt(pB.x * pB.x + pB.y * pB.y + pB.z * pB.z) || 1;
+      return dot / (magA * magB);
+    }
+
+    function setupQuickSimControls() {
+      const a = document.getElementById('quickSimA');
+      const b = document.getElementById('quickSimB');
+      if (!a || !b) return;
+      vectorPoints.forEach(p => {
+        a.appendChild(new Option(p.word, p.word));
+        b.appendChild(new Option(p.word, p.word));
+      });
+      if (vectorPoints.length >= 2) b.selectedIndex = 1;
+      const update = () => {
+        const pA = vectorPoints.find(p => p.word === a.value);
+        const pB = vectorPoints.find(p => p.word === b.value);
+        const score = calculateCosine(pA, pB).toFixed(3);
+        document.getElementById('quickSimScore').textContent = `${score >= 0 ? '+' : ''}${score}`;
+      };
+      a.addEventListener('change', update);
+      b.addEventListener('change', update);
+      update();
+    }
+
+    function setupCosineTabControls() {
+      const a = document.getElementById('cosWordA');
+      const b = document.getElementById('cosWordB');
+      if (!a || !b) return;
+      vectorPoints.forEach(p => {
+        a.appendChild(new Option(`${p.word} (#${p.assignedId ?? 0})`, p.word));
+        b.appendChild(new Option(`${p.word} (#${p.assignedId ?? 0})`, p.word));
+      });
+      if (vectorPoints.length >= 2) b.selectedIndex = 1;
+
+      const calc = () => {
+        const pA = vectorPoints.find(p => p.word === a.value);
+        const pB = vectorPoints.find(p => p.word === b.value);
+        if (!pA || !pB) return;
+
+        const scoreVal = calculateCosine(pA, pB);
+        const sim = scoreVal.toFixed(3);
+        const angle = (Math.acos(Math.max(-1, Math.min(1, scoreVal))) * (180 / Math.PI)).toFixed(1);
+
+        document.getElementById('bigCosScore').textContent = `${sim >= 0 ? '+' : ''}${sim}`;
+        document.getElementById('angularSeparationText').innerHTML = `Angular separation: <strong>${angle}°</strong> &bull; -1.0 (Opposite) to +1.0 (Collinear)`;
+
+        const pill = document.getElementById('similarityPill');
+        if (scoreVal > 0.7) {
+          pill.textContent = 'HIGH SIMILARITY';
+          pill.style.background = 'rgba(16, 185, 129, 0.15)';
+          pill.style.color = 'var(--cat-action)';
+        } else if (scoreVal > 0.2) {
+          pill.textContent = 'MODERATE SIMILARITY';
+          pill.style.background = 'rgba(245, 158, 11, 0.15)';
+          pill.style.color = 'var(--cat-emotion)';
+        } else {
+          pill.textContent = 'LOW / ORTHOGONAL';
+          pill.style.background = 'rgba(239, 68, 68, 0.15)';
+          pill.style.color = 'var(--cat-concept)';
+        }
+
+        const normA = Math.sqrt(pA.x*pA.x + pA.y*pA.y + pA.z*pA.z).toFixed(2);
+        const normB = Math.sqrt(pB.x*pB.x + pB.y*pB.y + pB.z*pB.z).toFixed(2);
+        const dot = (pA.x*pB.x + pA.y*pB.y + pA.z*pB.z).toFixed(2);
+
+        document.getElementById('mathBreakdownDetails').innerHTML = `
+          Vector A: [${pA.x}, ${pA.y}, ${pA.z}] &bull; Norm: ${normA}<br>
+          Vector B: [${pB.x}, ${pB.y}, ${pB.z}] &bull; Norm: ${normB}<br>
+          Dot Product (A &bull; B): ${dot} &bull; Final Cosine Score: <strong>${sim}</strong>
+        `;
+
+        const neighbors = vectorPoints
+          .filter(p => p.word !== pA.word)
+          .map(p => ({ word: p.word, score: calculateCosine(pA, p) }))
+          .sort((x, y) => y.score - x.score)
+          .slice(0, 5);
+
+        document.getElementById('nearestNeighborsTbody').innerHTML = neighbors.map((n, idx) => `
+          <tr>
+            <td>#${idx + 1}</td>
+            <td><strong>${n.word}</strong></td>
+            <td style="color:${n.score > 0.5 ? 'var(--cat-action)' : 'var(--accent)'}; font-weight:bold;">${n.score >= 0 ? '+' : ''}${n.score.toFixed(3)}</td>
+            <td><button class="btn-action" style="padding:0.2rem 0.5rem; font-size:0.7rem;" onclick="focusWordIn3D('${n.word}')">Fly to 3D</button></td>
+          </tr>
+        `).join('');
+      };
+
+      a.addEventListener('change', calc);
+      b.addEventListener('change', calc);
+      calc();
+    }
+
+    function setupMathTabControls() {
+      const a = document.getElementById('mathVecA');
+      const b = document.getElementById('mathVecB');
+      const c = document.getElementById('mathVecC');
+      if (!a || !b || !c) return;
+
+      vectorPoints.forEach(p => {
+        a.appendChild(new Option(`${p.word} (#${p.assignedId ?? 0})`, p.word));
+        b.appendChild(new Option(`${p.word} (#${p.assignedId ?? 0})`, p.word));
+        c.appendChild(new Option(`${p.word} (#${p.assignedId ?? 0})`, p.word));
+      });
+
+      if (vectorPoints.length >= 3) {
+        b.selectedIndex = 1;
+        c.selectedIndex = 2;
+      }
+
+      const computeAnalogy = () => {
+        const pA = vectorPoints.find(p => p.word === a.value);
+        const pB = vectorPoints.find(p => p.word === b.value);
+        const pC = vectorPoints.find(p => p.word === c.value);
+        if (!pA || !pB || !pC) return;
+
+        const targetX = pA.x - pB.x + pC.x;
+        const targetY = pA.y - pB.y + pC.y;
+        const targetZ = pA.z - pB.z + pC.z;
+        const targetNode = { x: targetX, y: targetY, z: targetZ };
+
+        document.getElementById('synthesizedVec').textContent = `[${targetX}, ${targetY}, ${targetZ}]`;
+
+        const scored = vectorPoints.map(p => ({
+          word: p.word,
+          score: calculateCosine(targetNode, p)
+        })).sort((x, y) => y.score - x.score);
+
+        if (scored.length) {
+          document.getElementById('mathClosestWord').textContent = scored[0].word;
+          document.getElementById('mathClosestScore').textContent = `cos = ${scored[0].score >= 0 ? '+' : ''}${scored[0].score.toFixed(3)}`;
+        }
+
+        document.getElementById('mathNearestTbody').innerHTML = scored.slice(0, 5).map((n, idx) => `
+          <tr>
+            <td>#${idx + 1}</td>
+            <td><strong>${n.word}</strong></td>
+            <td style="color:${n.score > 0.5 ? 'var(--cat-action)' : 'var(--accent)'}; font-weight:bold;">${n.score >= 0 ? '+' : ''}${n.score.toFixed(3)}</td>
+            <td><button class="btn-action" style="padding:0.2rem 0.5rem; font-size:0.7rem;" onclick="focusWordIn3D('${n.word}')">Fly to 3D</button></td>
+          </tr>
+        `).join('');
+      };
+
+      a.addEventListener('change', computeAnalogy);
+      b.addEventListener('change', computeAnalogy);
+      c.addEventListener('change', computeAnalogy);
+      computeAnalogy();
+    }
+
+    window.focusClosestMathWord = function() {
+      const word = document.getElementById('mathClosestWord').textContent;
+      focusWordIn3D(word);
+    };
+
+    window.hoverHeatmapCell = function(w1, w2, val) {
+      document.getElementById('attentionStatusText').innerHTML = `
+        Hovered: <strong style="color:var(--text-main);">${w1} &harr; ${w2}</strong> &bull; Attention Weight: <strong style="color:var(--cat-action);">${val}</strong>
+      `;
+      highlightedPair = [w1, w2];
+      draw3DSpace();
+    };
+
+    window.clearHeatmapHover = function() {
+      highlightedPair = null;
+      document.getElementById('attentionStatusText').textContent = 'Hover over any cell to inspect the affinity weight and highlight the relationship in 3D:';
+      draw3DSpace();
+    };
+
+    window.setTokenizerMode = function(mode) {
+      tokenizerMode = mode;
+      processSentence();
+      showToast(`Switched tokenizer strategy to: ${mode.toUpperCase()}`);
+    };
+
+    window.setSample = function(num) {
+      if (num === 1) activeSentence = "The cat is playing and the dog is playing.";
+      if (num === 2) activeSentence = "Artificial intelligence processes language into vectors.";
+      if (num === 3) activeSentence = "The quick brown fox jumps over the lazy dog.";
+      processSentence();
+      showToast(`Loaded Sample ${num}!`);
+    };
+
+    window.tokenizeFromInput = function() {
+      const el = document.getElementById('txtTokenizerInput');
+      if (el) {
+        activeSentence = el.value;
+        processSentence();
+        showToast("✓ Tokenized and updated vocabulary!");
+      }
+    };
+
+    window.filterVocabTable = function() {
+      const query = (document.getElementById('vocabSearch').value || "").toLowerCase();
+      const cat = document.getElementById('vocabCatFilter').value;
+      const rows = document.querySelectorAll('#vocabTableTbody tr');
+      rows.forEach(r => {
+        const w = r.getAttribute('data-word');
+        const id = r.getAttribute('data-id');
+        const c = r.getAttribute('data-cat');
+        const matchesQuery = w.includes(query) || id.includes(query);
+        const matchesCat = cat === 'all' || c === cat;
+        r.style.display = (matchesQuery && matchesCat) ? '' : 'none';
+      });
+    };
+
+    // WHAT THIS DOES:
+    // Deletes a word. If it's a separately added word, removes from custom list. If in sentence, removes from sentence string!
+    window.deleteWord = function(targetWord, isCustom) {
+      if (isCustom) {
+        customAddedWords = customAddedWords.filter(c => c.word !== targetWord);
+      } else {
+        // Remove word from active sentence
+        const regex = new RegExp(`\\b${targetWord}\\b`, 'gi');
+        activeSentence = activeSentence.replace(regex, '').replace(/\s+/g, ' ').trim();
+      }
+      processSentence();
+      showToast(`Removed "${targetWord}" from vocabulary and 3D space!`);
+    };
+
+    window.exportVocabJSON = function() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(vectorPoints, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "lexicon_vocabulary.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("Downloaded lexicon_vocabulary.json!");
+    };
+
+    window.encodeSentence = function() {
+      const el = document.getElementById('txtEncoderInput');
+      const autoAdd = document.getElementById('chkAutoAdd').checked;
+      if (!el) return;
+
+      const words = el.value.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").trim().split(/\s+/).filter(Boolean);
+      const encoded = words.map(w => {
+        if (vocabMap[w] !== undefined) return vocabMap[w];
+        if (autoAdd) {
+          const newId = Object.keys(vocabMap).length;
+          vocabMap[w] = newId;
+          customAddedWords.push({ ...createWordVector(w, 'concept', true), assignedId: newId, frequency: 1 });
+          return newId;
+        }
+        return '"UNK"';
+      });
+
+      document.getElementById('encoderResultArray').textContent = `[${encoded.join(', ')}]`;
+      document.getElementById('txtDecodeSequence').value = `[${encoded.join(', ')}]`;
+      activeSentence = el.value;
+      processSentence(true);
+      showToast("✓ Encoded sentence to numerical IDs!");
+    };
+
+    window.decodeSequence = function() {
+      const input = document.getElementById('txtDecodeSequence').value;
+      try {
+        const ids = JSON.parse(input);
+        const reverseMap = {};
+        vectorPoints.forEach(p => {
+          if (p.assignedId !== undefined) reverseMap[p.assignedId] = p.word;
+        });
+        const words = ids.map(id => reverseMap[id] || `[UNK#${id}]`);
+        document.getElementById('decodedTextResult').textContent = `"${words.join(' ')}"`;
+        showToast("✓ Successfully decoded array into words!");
+      } catch (err) {
+        document.getElementById('decodedTextResult').textContent = `"${activeSentence}"`;
+      }
+    };
+
+    window.setMathPreset = function(p) {
+      if (p === 1) {
+        document.getElementById('mathVecA').value = "dog";
+        document.getElementById('mathVecB').value = "cat";
+        document.getElementById('mathVecC').value = "playing";
+      } else {
+        document.getElementById('mathVecA').value = "the";
+        document.getElementById('mathVecB').value = "is";
+        document.getElementById('mathVecC').value = "and";
+      }
+      document.getElementById('mathVecA').dispatchEvent(new Event('change'));
+    };
+
+    window.autoComputeCoords = function() {
+      const cat = document.getElementById('manualCategory').value;
+      const baseCoords = {
+        entity: { x: -180, y: -70, z: -70 },
+        action: { x: 170, y: -130, z: 90 },
+        emotion: { x: -160, y: 120, z: 90 },
+        grammar: { x: 180, y: 60, z: -60 },
+        concept: { x: 0, y: -40, z: -170 }
+      }[cat] || { x: 50, y: -50, z: 50 };
+
+      document.getElementById('rangeX').value = baseCoords.x;
+      document.getElementById('rangeY').value = baseCoords.y;
+      document.getElementById('rangeZ').value = baseCoords.z;
+      document.getElementById('valX').textContent = baseCoords.x;
+      document.getElementById('valY').textContent = baseCoords.y;
+      document.getElementById('valZ').textContent = baseCoords.z;
+    };
+
+    window.anchorToSelectedWord = function() {
+      const anchorWord = document.getElementById('manualAnchorWord').value;
+      if (!anchorWord) return;
+      const node = vectorPoints.find(p => p.word === anchorWord);
+      if (node) {
+        const x = Math.round(node.x + 25);
+        const y = Math.round(node.y + 25);
+        const z = Math.round(node.z + 25);
+        document.getElementById('rangeX').value = x;
+        document.getElementById('rangeY').value = y;
+        document.getElementById('rangeZ').value = z;
+        document.getElementById('valX').textContent = x;
+        document.getElementById('valY').textContent = y;
+        document.getElementById('valZ').textContent = z;
+      }
+    };
+
+    window.injectManualWord = function() {
+      const word = document.getElementById('manualWord').value.trim();
+      if (!word) {
+        showToast("Please enter a word to inject!");
+        return;
+      }
+      const cat = document.getElementById('manualCategory').value;
+      const x = parseFloat(document.getElementById('rangeX').value);
+      const y = parseFloat(document.getElementById('rangeY').value);
+      const z = parseFloat(document.getElementById('rangeZ').value);
+      const freq = parseInt(document.getElementById('manualFreq').value) || 1;
+
+      const newVec = {
+        ...createWordVector(word, cat, true),
+        x: x || -180,
+        y: y || -70,
+        z: z || -70,
+        frequency: freq
+      };
+
+      customAddedWords.push(newVec);
+      document.getElementById('manualWord').value = '';
+      processSentence();
+      focusWordIn3D(word);
+      showToast(`✓ Injected "${word}" separately into 3D Space!`);
+    };
+
+    // WHAT THIS DOES:
+    // Focuses the 3D camera onto any clicked word node.
+    window.focusWordIn3D = function(targetWord) {
+      const node = vectorPoints.find(p => p.word === targetWord);
+      if (node) {
+        angleX = 0.25;
+        angleY = Math.atan2(node.x, node.z);
+        zoomScale = 1.15;
+        draw3DSpace();
+        showToast(`Focusing 3D camera on "${targetWord}"`);
+      }
+    };
+
+    // WHAT THIS DOES:
+    // Projects 3D coordinates (X, Y, Z) onto 2D canvas with camera rotation and zoom.
+    function project3D(x, y, z, cx, cy) {
+      const radY = angleY;
+      const x1 = x * Math.cos(radY) - z * Math.sin(radY);
+      const z1 = x * Math.sin(radY) + z * Math.cos(radY);
+
+      const radX = angleX;
+      const y2 = y * Math.cos(radX) - z1 * Math.sin(radX);
+      const z2 = y * Math.sin(radX) + z1 * Math.cos(radX);
+
+      const cameraDistance = 380;
+      const perspective = cameraDistance / (cameraDistance + z2);
+      const finalScale = perspective * zoomScale;
+
+      return {
+        screenX: cx + x1 * finalScale,
+        screenY: cy + y2 * finalScale,
+        scale: Math.max(0.18, finalScale),
+        depth: z2
+      };
+    }
+
+    // WHAT THIS DOES:
+    // Draws the 3D floor grid and colored coordinate axes for the 3D viewport.
+    function draw3DFloorGrid(ctx, cx, cy) {
+      const floorY = 150;
+      const gridSize = 300;
+      const step = 50;
+
+      ctx.beginPath();
+      ctx.strokeStyle = isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.06)';
+      ctx.lineWidth = 1;
+
+      for (let x = -gridSize; x <= gridSize; x += step) {
+        const p1 = project3D(x, floorY, -gridSize, cx, cy);
+        const p2 = project3D(x, floorY, gridSize, cx, cy);
+        ctx.moveTo(p1.screenX, p1.screenY);
+        ctx.lineTo(p2.screenX, p2.screenY);
+      }
+      for (let z = -gridSize; z <= gridSize; z += step) {
+        const p1 = project3D(-gridSize, floorY, z, cx, cy);
+        const p2 = project3D(gridSize, floorY, z, cx, cy);
+        ctx.moveTo(p1.screenX, p1.screenY);
+        ctx.lineTo(p2.screenX, p2.screenY);
+      }
+      ctx.stroke();
+
+      const origin = project3D(0, floorY, 0, cx, cy);
+      const axisX = project3D(220, floorY, 0, cx, cy);
+      const axisZ = project3D(0, floorY, 220, cx, cy);
+      const axisY = project3D(0, -180, 0, cx, cy);
+
+      ctx.beginPath();
+      ctx.moveTo(origin.screenX, origin.screenY);
+      ctx.lineTo(axisX.screenX, axisX.screenY);
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.45)';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(origin.screenX, origin.screenY);
+      ctx.lineTo(axisZ.screenX, axisZ.screenY);
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.45)';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(origin.screenX, origin.screenY);
+      ctx.lineTo(axisY.screenX, axisY.screenY);
+      ctx.strokeStyle = isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // WHAT THIS DOES:
+    // Draws shaded 3D spheres with radial gradients, cluster web links, active relationship beams, and floating pill labels.
+    function draw3DSpace() {
+      if (!canvas || !canvasContainer) return;
+      const ctx = canvas.getContext('2d');
+
+      const rect = canvasContainer.getBoundingClientRect();
+      const targetW = Math.round(rect.width);
+      const targetH = Math.round(rect.height);
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+      }
+
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      draw3DFloorGrid(ctx, cx, cy);
+
+      const projected = vectorPoints.map((pt, i) => {
+        const pr = project3D(pt.x, pt.y, pt.z, cx, cy);
+        return { ...pt, ...pr, index: i };
+      });
+
+      // Cluster connection lines between nodes of the same category
+      const categoriesList = ['entity', 'grammar', 'action', 'emotion', 'concept'];
+      categoriesList.forEach(cat => {
+        const clusterNodes = projected.filter(p => p.category === cat);
+        if (clusterNodes.length > 1) {
+          ctx.beginPath();
+          ctx.strokeStyle = isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(100, 116, 139, 0.28)';
+          ctx.lineWidth = 1.2;
+          for (let i = 0; i < clusterNodes.length; i++) {
+            for (let j = i + 1; j < clusterNodes.length; j++) {
+              ctx.moveTo(clusterNodes[i].screenX, clusterNodes[i].screenY);
+              ctx.lineTo(clusterNodes[j].screenX, clusterNodes[j].screenY);
+            }
+          }
+          ctx.stroke();
+        }
+      });
+
+      // Highlight active relationship beam if hovered from Attention Matrix
+      if (highlightedPair) {
+        const n1 = projected.find(p => p.word === highlightedPair[0]);
+        const n2 = projected.find(p => p.word === highlightedPair[1]);
+        if (n1 && n2) {
+          ctx.beginPath();
+          ctx.moveTo(n1.screenX, n1.screenY);
+          ctx.lineTo(n2.screenX, n2.screenY);
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(n1.screenX, n1.screenY, 24, 0, Math.PI * 2);
+          ctx.arc(n2.screenX, n2.screenY, 24, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+
+      projected.sort((a, b) => b.depth - a.depth);
+
+      projected.forEach(pt => {
+        const radius = Math.max(10, 18 * pt.scale);
+
+        const lightOffsetX = pt.screenX - radius * 0.35;
+        const lightOffsetY = pt.screenY - radius * 0.35;
+
+        const sphereGrad = ctx.createRadialGradient(
+          lightOffsetX, lightOffsetY, radius * 0.08,
+          pt.screenX, pt.screenY, radius
+        );
+        sphereGrad.addColorStop(0, '#ffffff');
+        sphereGrad.addColorStop(0.2, pt.highlight);
+        sphereGrad.addColorStop(0.55, pt.color);
+        sphereGrad.addColorStop(1, pt.shadow);
+
+        ctx.beginPath();
+        ctx.ellipse(pt.screenX, pt.screenY + radius * 0.85, radius * 0.75, radius * 0.25, 0, 0, Math.PI * 2);
+        ctx.fillStyle = isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.12)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(pt.screenX, pt.screenY, radius, 0, Math.PI * 2);
+        ctx.fillStyle = sphereGrad;
+        ctx.fill();
+
+        // Dashed ring if added separately
+        if (pt.isCustom) {
+          ctx.beginPath();
+          ctx.arc(pt.screenX, pt.screenY, radius + 4, 0, Math.PI * 2);
+          ctx.strokeStyle = pt.color;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([3, 2]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // Floating Pill Card Label
+        const pillX = pt.screenX - 16;
+        const pillY = pt.screenY - radius - 24;
+
+        ctx.beginPath();
+        ctx.moveTo(pt.screenX, pt.screenY - radius);
+        ctx.lineTo(pillX + 16, pillY + 14);
+        ctx.strokeStyle = isDarkMode ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        const fontSize = Math.max(10, Math.round(11 * Math.min(1.2, pt.scale)));
+        ctx.font = `600 ${fontSize}px system-ui, sans-serif`;
+        const textMetrics = ctx.measureText(pt.word);
+        const pillWidth = Math.max(56, textMetrics.width + 30);
+        const pillHeight = 20;
+
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillWidth, pillHeight, 5);
+        ctx.fillStyle = isDarkMode ? 'rgba(24, 24, 27, 0.94)' : '#ffffff';
+        ctx.fill();
+
+        ctx.strokeStyle = pt.isCustom ? pt.color : (isDarkMode ? '#3f3f46' : '#cbd5e1');
+        ctx.lineWidth = pt.isCustom ? 1.4 : 1;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(pillX + 9, pillY + pillHeight / 2, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = pt.color;
+        ctx.fill();
+
+        ctx.fillStyle = isDarkMode ? '#fafafa' : '#0f172a';
+        ctx.fillText(pt.word, pillX + 18, pillY + pillHeight / 2 + 4);
+      });
+    }
+
+    // WHAT THIS DOES:
+    // Enables mouse drag rotation and scroll wheel zooming on the 3D canvas.
+    function setupCanvasGestures() {
+      canvas.addEventListener('mousedown', function (e) {
+        isDragging3D = true;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+      });
+
+      window.addEventListener('mouseup', function () {
+        isDragging3D = false;
+      });
+
+      window.addEventListener('mousemove', function (e) {
+        if (!isDragging3D) return;
+        const dx = e.clientX - lastMouseX;
+        const dy = e.clientY - lastMouseY;
+        angleY += dx * 0.007;
+        angleX += dy * 0.007;
+        angleX = Math.max(-1.4, Math.min(1.4, angleX));
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+        draw3DSpace();
+      });
+
+      canvas.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          zoomScale = Math.min(2.5, zoomScale * 1.12);
+        } else {
+          zoomScale = Math.max(0.4, zoomScale * 0.88);
+        }
+        draw3DSpace();
+      }, { passive: false });
+    }
+
+    // Top Navigation Bar Tab Switcher
+    mainNavBar.addEventListener('click', function (e) {
+      if (e.target.classList.contains('nav-tab-btn')) {
+        document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        activeTab = e.target.getAttribute('data-tab');
+        renderActiveTab();
+      }
+    });
+
+    // Viewport Camera Presets
+    document.getElementById('camReset').addEventListener('click', () => { angleX = 0.38; angleY = 0.65; zoomScale = 0.90; draw3DSpace(); });
+    document.getElementById('camTop').addEventListener('click', () => { angleX = 1.55; angleY = 0; zoomScale = 0.85; draw3DSpace(); });
+    document.getElementById('camFront').addEventListener('click', () => { angleX = 0; angleY = 0; zoomScale = 0.90; draw3DSpace(); });
+    document.getElementById('camIso').addEventListener('click', () => { angleX = 0.45; angleY = 0.78; zoomScale = 0.90; draw3DSpace(); });
+    resetCamBtn.addEventListener('click', () => { angleX = 0.38; angleY = 0.65; zoomScale = 0.90; draw3DSpace(); });
+
+    presetSelect.addEventListener('change', function () {
+      if (this.value === 'cat_dog') activeSentence = "The cat is playing and the dog is playing.";
+      if (this.value === 'quick_fox') activeSentence = "The quick brown fox jumps over the lazy dog.";
+      if (this.value === 'ai_vector') activeSentence = "Artificial intelligence processes language into vectors.";
+      processSentence();
+      showToast("Loaded preset: " + this.options[this.selectedIndex].text);
+    });
+
+    // Initialize application
+    setupResizerGesture();
+    setupCanvasGestures();
+    processSentence();
+  </script>
+</body>
+</html>
