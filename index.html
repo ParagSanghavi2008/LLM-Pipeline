@@ -721,9 +721,55 @@
   <!-- Workspace: Draggable Splitter between Content & 3D Space -->
   <div class="workspace-wrapper" id="workspaceWrapper">
 
-    <!-- Left Content Panel -->
+    <!-- Left Content Panel (Pre-rendered for instantaneous loading) -->
     <main class="content-area" id="tabContentContainer" style="flex: 0 0 62%;">
-      <!-- Injected via JavaScript based on active top tab -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">🔤 Sentence Tokenizer &amp; Parser</div>
+            <div class="panel-desc">Real-time sync: edit or remove words below to see them update in 3D immediately</div>
+          </div>
+          <button id="btnTokenizeSync" class="btn-action">⚡ Tokenize &amp; Sync</button>
+        </div>
+        <textarea id="txtSentence" class="sentence-input" style="height:70px;">The cat is playing and the dog is playing.</textarea>
+        
+        <div style="font-size:0.75rem; color:var(--text-muted); margin: 0.75rem 0 0.4rem;">WORDS IN 3D SPACE (Click any badge to focus):</div>
+        <div id="dashTokenBadgesWrap" class="token-badges-wrap" style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:0.75rem;">
+          <div class="badge-chip"><span style="color:#64748b;">●</span><span>the</span><span class="badge-num">#0</span></div>
+          <div class="badge-chip"><span style="color:#0ea5e9;">●</span><span>cat</span><span class="badge-num">#1</span></div>
+          <div class="badge-chip"><span style="color:#64748b;">●</span><span>is</span><span class="badge-num">#2</span></div>
+          <div class="badge-chip"><span style="color:#10b981;">●</span><span>playing</span><span class="badge-num">#3</span></div>
+          <div class="badge-chip"><span style="color:#64748b;">●</span><span>and</span><span class="badge-num">#4</span></div>
+          <div class="badge-chip"><span style="color:#0ea5e9;">●</span><span>dog</span><span class="badge-num">#5</span></div>
+        </div>
+
+        <div class="array-box">
+          <span id="dashSequenceArraySpan">ENCODED SEQUENCE: [0, 1, 2, 3, 4, 0, 5, 2, 3]</span>
+          <button class="btn-action" style="padding:0.25rem 0.6rem; font-size:0.75rem;" onclick="copyToClipboard('[0, 1, 2, 3, 4, 0, 5, 2, 3]', 'Sequence Array')">📋 Copy Array</button>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div class="panel-card">
+          <div class="panel-title" style="margin-bottom:0.75rem;">🔍 Cosine Quick Tester</div>
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem;">
+            <select id="quickSimA" class="select-input"></select>
+            <select id="quickSimB" class="select-input"></select>
+          </div>
+          <div style="text-align:center; padding:0.6rem; background:var(--card-inner); border-radius:8px; border:1px solid var(--border);">
+            Cosine Score: <strong id="quickSimScore" style="color:var(--accent); font-size:1.15rem;">+0.983</strong>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-title" style="margin-bottom:0.75rem;">➕ Quick Add Word (Separately)</div>
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem;">
+            <input type="text" id="quickAddWord" class="text-input" placeholder="e.g. food, kitten" />
+            <button id="btnQuickAdd" class="btn-action">Add</button>
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">Injected separately into 3D space with persistent status.</div>
+        </div>
+      </div>
     </main>
 
     <!-- Draggable Splitter Divider Gesture Bar -->
@@ -992,12 +1038,32 @@
     }
 
     // WHAT THIS DOES:
+    // WHAT THIS DOES:
+    // Safe polyfill for roundRect on HTML5 Canvas so floating pill labels render on every browser without error.
+    if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        if (!r) r = 5;
+        this.beginPath();
+        this.moveTo(x + r, y);
+        this.lineTo(x + w - r, y);
+        this.quadraticCurveTo(x + w, y, x + w, y + r);
+        this.lineTo(x + w, y + h - r);
+        this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        this.lineTo(x + r, y + h);
+        this.quadraticCurveTo(x, y + h, x, y + h - r);
+        this.lineTo(x, y + r);
+        this.quadraticCurveTo(x, y, x + r, y);
+        this.closePath();
+        return this;
+      };
+    }
+
     // Core data processing:
     // 1. Sentence words in 3D space STRICTLY match words in the current sentence.
     // 2. If a word is removed from the sentence, it is IMMEDIATELY removed from 3D space!
     // 3. Separately added words persist unless deleted.
     // 4. Words are kept clearly separated according to their respective category.
-    function processSentence() {
+    function processSentence(isTyping = false) {
       const cleanText = activeSentence.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
       let rawTokens = [];
 
